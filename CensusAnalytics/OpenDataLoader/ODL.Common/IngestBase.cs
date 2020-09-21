@@ -28,9 +28,18 @@ namespace ODL.Common
             {
                 LogObject.LogError("Can't connect to the database with specified parameters: " + ex.Message);
             }
+        }
+
+        /// <summary>
+        /// This is the method (after the constructor) that I should be able to call as a task and have it process everything
+        /// in a separate thread.  We will use tasks so that we don't hang up the main UI thread.
+        /// </summary>
+        /// <returns>Number of new records loaded from selected file.</returns>
+        public Int32 StartLoading()
+        {
             CreateDatabaseTable();
             PreviouslyLoadedRecords = PopulatePreviouslyLoadedRecords();
-            LoadRecordsFromFile();
+            return LoadRecordsFromFile();
         }
 
         /// <summary>
@@ -51,7 +60,6 @@ namespace ODL.Common
         /// that no duplicate records are loaded to the repository from the source files.
         /// </summary>
         public abstract List<String> PopulatePreviouslyLoadedRecords();
-
 
     }
 }
