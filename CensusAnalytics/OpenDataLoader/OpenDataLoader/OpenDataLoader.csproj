@@ -6,4 +6,8 @@
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ODL.Common\ODL.Common.csproj" />
+  </ItemGroup>
+
 </Project>

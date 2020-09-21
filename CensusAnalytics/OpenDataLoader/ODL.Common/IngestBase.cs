@@ -10,20 +10,27 @@ namespace ODL.Common
     internal abstract class IngestBase
     {
         private LogHandler logger;
-        private IDbConnection dbConnection;
         private FileInfo dataFile;
         private List<String> PreviouslyLoadedRecords;
+        private Npgsql.NpgsqlConnection PostgresConnection = null;
 
-        public IngestBase(LogHandler LogObject, IDbConnection DbConnection, String FileName)
+        public IngestBase(LogHandler LogObject, ODL.Common.DBConnectionDetails DbConnectionInfo, String FileName)
         {
             this.logger = LogObject;
-            this.dbConnection = DbConnection;
             this.dataFile = new FileInfo(FileName);
 
-            if (dbConnection.State != ConnectionState.Open)
+            try
             {
-                logger.LogCritical("Database Connection State Passed to Ingest Class is Closed, Please Check DB Connection");
+                //Figure out which type of database we have and test the connection.
+                if (DbConnectionInfo.DBType == ODL.Common.SupportedDatabases.PostgreSQL) PostgresConnection = DatabaseUtils.Postgres.ConnectToPostGRES(DbConnectionInfo);
             }
+            catch (Exception ex)
+            {
+                LogObject.LogError("Can't connect to the database with specified parameters: " + ex.Message);
+            }
+            CreateDatabaseTable();
+            PreviouslyLoadedRecords = PopulatePreviouslyLoadedRecords();
+            LoadRecordsFromFile();
         }
 
         /// <summary>
@@ -34,7 +41,7 @@ namespace ODL.Common
         public abstract Int32 LoadRecordsFromFile();
 
         /// <summary>
-        /// This method should create a database table that fits the data format that is being loaded for the table type.
+        /// This method should verify/create a database table that fits the data format that is being loaded for the table type.
         /// Ideally, there would be a hashid of each record as the PK that will prevent duplicate entries if the same file is loaded twice.
         /// </summary>
         public abstract void CreateDatabaseTable();
@@ -43,6 +50,8 @@ namespace ODL.Common
         /// This method should select the common PK (if one exists in the source) or the generated PK/hash from the DB to ensure
         /// that no duplicate records are loaded to the repository from the source files.
         /// </summary>
-        public abstract void PopulatePreviouslyLoadedRecords();
+        public abstract List<String> PopulatePreviouslyLoadedRecords();
+
+
     }
 }

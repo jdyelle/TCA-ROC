@@ -39,18 +39,21 @@
             this.txtDBServer = new System.Windows.Forms.TextBox();
             this.lblDBServer = new System.Windows.Forms.Label();
             this.boxDatabaseInfo = new System.Windows.Forms.GroupBox();
+            this.cmbDatabaseType = new System.Windows.Forms.ComboBox();
+            this.lblDatabaseType = new System.Windows.Forms.Label();
             this.lblDBCatalog = new System.Windows.Forms.Label();
             this.lblDBPassword = new System.Windows.Forms.Label();
             this.txtDBCatalog = new System.Windows.Forms.TextBox();
             this.lblDBUsername = new System.Windows.Forms.Label();
+            this.btnSaveDBInfo = new System.Windows.Forms.Button();
             this.txtDBPassword = new System.Windows.Forms.TextBox();
             this.txtDBUsername = new System.Windows.Forms.TextBox();
             this.dgMessages = new System.Windows.Forms.DataGridView();
-            this.btnSaveDBInfo = new System.Windows.Forms.Button();
             this.btnCheckDBTable = new System.Windows.Forms.Button();
             this.btnLoadSelectedFile = new System.Windows.Forms.Button();
             this.btnExitApp = new System.Windows.Forms.Button();
             this.chkDebugMode = new System.Windows.Forms.CheckBox();
+            this.btnPreviousFiles = new System.Windows.Forms.Button();
             this.boxFileInfo.SuspendLayout();
             this.boxDatabaseInfo.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgMessages)).BeginInit();
@@ -78,14 +81,14 @@
             this.cmbFileType.Location = new System.Drawing.Point(78, 130);
             this.cmbFileType.Name = "cmbFileType";
             this.cmbFileType.Size = new System.Drawing.Size(339, 23);
-            this.cmbFileType.TabIndex = 2;
+            this.cmbFileType.TabIndex = 40;
             // 
             // btnFileSelect
             // 
             this.btnFileSelect.Location = new System.Drawing.Point(342, 49);
             this.btnFileSelect.Name = "btnFileSelect";
             this.btnFileSelect.Size = new System.Drawing.Size(75, 23);
-            this.btnFileSelect.TabIndex = 3;
+            this.btnFileSelect.TabIndex = 20;
             this.btnFileSelect.Text = "Browse";
             this.btnFileSelect.UseVisualStyleBackColor = true;
             // 
@@ -95,14 +98,15 @@
             this.cmbFileSource.Location = new System.Drawing.Point(78, 92);
             this.cmbFileSource.Name = "cmbFileSource";
             this.cmbFileSource.Size = new System.Drawing.Size(339, 23);
-            this.cmbFileSource.TabIndex = 2;
+            this.cmbFileSource.TabIndex = 30;
+            this.cmbFileSource.SelectedIndexChanged += new System.EventHandler(this.cmbFileSource_SelectedIndexChanged);
             // 
             // txtFileName
             // 
             this.txtFileName.Location = new System.Drawing.Point(73, 20);
             this.txtFileName.Name = "txtFileName";
             this.txtFileName.Size = new System.Drawing.Size(344, 23);
-            this.txtFileName.TabIndex = 1;
+            this.txtFileName.TabIndex = 10;
             // 
             // lblFileType
             // 
@@ -136,7 +140,7 @@
             this.txtDBServer.Location = new System.Drawing.Point(103, 20);
             this.txtDBServer.Name = "txtDBServer";
             this.txtDBServer.Size = new System.Drawing.Size(314, 23);
-            this.txtDBServer.TabIndex = 1;
+            this.txtDBServer.TabIndex = 110;
             // 
             // lblDBServer
             // 
@@ -149,10 +153,13 @@
             // 
             // boxDatabaseInfo
             // 
+            this.boxDatabaseInfo.Controls.Add(this.cmbDatabaseType);
+            this.boxDatabaseInfo.Controls.Add(this.lblDatabaseType);
             this.boxDatabaseInfo.Controls.Add(this.lblDBCatalog);
             this.boxDatabaseInfo.Controls.Add(this.lblDBPassword);
             this.boxDatabaseInfo.Controls.Add(this.txtDBCatalog);
             this.boxDatabaseInfo.Controls.Add(this.lblDBUsername);
+            this.boxDatabaseInfo.Controls.Add(this.btnSaveDBInfo);
             this.boxDatabaseInfo.Controls.Add(this.txtDBPassword);
             this.boxDatabaseInfo.Controls.Add(this.txtDBUsername);
             this.boxDatabaseInfo.Controls.Add(this.txtDBServer);
@@ -163,6 +170,23 @@
             this.boxDatabaseInfo.TabIndex = 0;
             this.boxDatabaseInfo.TabStop = false;
             this.boxDatabaseInfo.Text = "Database Details";
+            // 
+            // cmbDatabaseType
+            // 
+            this.cmbDatabaseType.FormattingEnabled = true;
+            this.cmbDatabaseType.Location = new System.Drawing.Point(267, 55);
+            this.cmbDatabaseType.Name = "cmbDatabaseType";
+            this.cmbDatabaseType.Size = new System.Drawing.Size(150, 23);
+            this.cmbDatabaseType.TabIndex = 150;
+            // 
+            // lblDatabaseType
+            // 
+            this.lblDatabaseType.AutoSize = true;
+            this.lblDatabaseType.Location = new System.Drawing.Point(298, 81);
+            this.lblDatabaseType.Name = "lblDatabaseType";
+            this.lblDatabaseType.Size = new System.Drawing.Size(82, 15);
+            this.lblDatabaseType.TabIndex = 0;
+            this.lblDatabaseType.Text = "Database Type";
             // 
             // lblDBCatalog
             // 
@@ -186,8 +210,8 @@
             // 
             this.txtDBCatalog.Location = new System.Drawing.Point(103, 55);
             this.txtDBCatalog.Name = "txtDBCatalog";
-            this.txtDBCatalog.Size = new System.Drawing.Size(314, 23);
-            this.txtDBCatalog.TabIndex = 1;
+            this.txtDBCatalog.Size = new System.Drawing.Size(146, 23);
+            this.txtDBCatalog.TabIndex = 120;
             // 
             // lblDBUsername
             // 
@@ -198,20 +222,29 @@
             this.lblDBUsername.TabIndex = 0;
             this.lblDBUsername.Text = "DB Username";
             // 
+            // btnSaveDBInfo
+            // 
+            this.btnSaveDBInfo.Location = new System.Drawing.Point(267, 129);
+            this.btnSaveDBInfo.Name = "btnSaveDBInfo";
+            this.btnSaveDBInfo.Size = new System.Drawing.Size(150, 23);
+            this.btnSaveDBInfo.TabIndex = 160;
+            this.btnSaveDBInfo.Text = "Save DB Information";
+            this.btnSaveDBInfo.UseVisualStyleBackColor = true;
+            // 
             // txtDBPassword
             // 
             this.txtDBPassword.Location = new System.Drawing.Point(103, 130);
             this.txtDBPassword.Name = "txtDBPassword";
             this.txtDBPassword.PasswordChar = '*';
-            this.txtDBPassword.Size = new System.Drawing.Size(314, 23);
-            this.txtDBPassword.TabIndex = 1;
+            this.txtDBPassword.Size = new System.Drawing.Size(146, 23);
+            this.txtDBPassword.TabIndex = 140;
             // 
             // txtDBUsername
             // 
             this.txtDBUsername.Location = new System.Drawing.Point(103, 92);
             this.txtDBUsername.Name = "txtDBUsername";
-            this.txtDBUsername.Size = new System.Drawing.Size(314, 23);
-            this.txtDBUsername.TabIndex = 1;
+            this.txtDBUsername.Size = new System.Drawing.Size(146, 23);
+            this.txtDBUsername.TabIndex = 130;
             // 
             // dgMessages
             // 
@@ -223,24 +256,15 @@
             this.dgMessages.Name = "dgMessages";
             this.dgMessages.ReadOnly = true;
             this.dgMessages.Size = new System.Drawing.Size(862, 197);
-            this.dgMessages.TabIndex = 1;
+            this.dgMessages.TabIndex = 100;
             this.dgMessages.Text = "dataGridView1";
-            // 
-            // btnSaveDBInfo
-            // 
-            this.btnSaveDBInfo.Location = new System.Drawing.Point(569, 392);
-            this.btnSaveDBInfo.Name = "btnSaveDBInfo";
-            this.btnSaveDBInfo.Size = new System.Drawing.Size(150, 23);
-            this.btnSaveDBInfo.TabIndex = 3;
-            this.btnSaveDBInfo.Text = "Save DB Information";
-            this.btnSaveDBInfo.UseVisualStyleBackColor = true;
             // 
             // btnCheckDBTable
             // 
             this.btnCheckDBTable.Location = new System.Drawing.Point(13, 392);
             this.btnCheckDBTable.Name = "btnCheckDBTable";
             this.btnCheckDBTable.Size = new System.Drawing.Size(185, 23);
-            this.btnCheckDBTable.TabIndex = 3;
+            this.btnCheckDBTable.TabIndex = 50;
             this.btnCheckDBTable.Text = "Check DB Table Record Count";
             this.btnCheckDBTable.UseVisualStyleBackColor = true;
             // 
@@ -249,7 +273,7 @@
             this.btnLoadSelectedFile.Location = new System.Drawing.Point(204, 392);
             this.btnLoadSelectedFile.Name = "btnLoadSelectedFile";
             this.btnLoadSelectedFile.Size = new System.Drawing.Size(185, 23);
-            this.btnLoadSelectedFile.TabIndex = 3;
+            this.btnLoadSelectedFile.TabIndex = 60;
             this.btnLoadSelectedFile.Text = "Load Selected File";
             this.btnLoadSelectedFile.UseVisualStyleBackColor = true;
             // 
@@ -258,30 +282,39 @@
             this.btnExitApp.Location = new System.Drawing.Point(725, 392);
             this.btnExitApp.Name = "btnExitApp";
             this.btnExitApp.Size = new System.Drawing.Size(150, 23);
-            this.btnExitApp.TabIndex = 3;
+            this.btnExitApp.TabIndex = 90;
             this.btnExitApp.Text = "Exit Application";
             this.btnExitApp.UseVisualStyleBackColor = true;
             // 
             // chkDebugMode
             // 
             this.chkDebugMode.AutoSize = true;
-            this.chkDebugMode.Location = new System.Drawing.Point(447, 395);
+            this.chkDebugMode.Location = new System.Drawing.Point(624, 395);
             this.chkDebugMode.Name = "chkDebugMode";
             this.chkDebugMode.Size = new System.Drawing.Size(95, 19);
-            this.chkDebugMode.TabIndex = 4;
+            this.chkDebugMode.TabIndex = 80;
             this.chkDebugMode.Text = "Debug Mode";
             this.chkDebugMode.UseVisualStyleBackColor = true;
+            // 
+            // btnPreviousFiles
+            // 
+            this.btnPreviousFiles.Location = new System.Drawing.Point(395, 392);
+            this.btnPreviousFiles.Name = "btnPreviousFiles";
+            this.btnPreviousFiles.Size = new System.Drawing.Size(185, 23);
+            this.btnPreviousFiles.TabIndex = 70;
+            this.btnPreviousFiles.Text = "Display Previously Loaded Files";
+            this.btnPreviousFiles.UseVisualStyleBackColor = true;
             // 
             // UIMainScreen
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(887, 425);
+            this.Controls.Add(this.btnPreviousFiles);
             this.Controls.Add(this.chkDebugMode);
             this.Controls.Add(this.btnLoadSelectedFile);
             this.Controls.Add(this.btnCheckDBTable);
             this.Controls.Add(this.btnExitApp);
-            this.Controls.Add(this.btnSaveDBInfo);
             this.Controls.Add(this.dgMessages);
             this.Controls.Add(this.boxDatabaseInfo);
             this.Controls.Add(this.boxFileInfo);
@@ -320,9 +353,11 @@
         private System.Windows.Forms.Button btnSaveDBInfo;
         private System.Windows.Forms.Button btnCheckDBTable;
         private System.Windows.Forms.Button btnLoadSelectedFile;
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button btnExitApp;
         private System.Windows.Forms.CheckBox chkDebugMode;
+        private System.Windows.Forms.Button btnPreviousFiles;
+        private System.Windows.Forms.Label lblDatabaseType;
+        private System.Windows.Forms.ComboBox cmbDatabaseType;
     }
 }
 
