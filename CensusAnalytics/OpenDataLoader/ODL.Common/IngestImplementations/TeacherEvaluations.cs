@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Data.OleDb;
+using System.IO;
+using System.IO.Compression;
 
 namespace ODL.Common
 {
-    class TeacherEvaluations:IngestBase
-    {        
+    public class TeacherEvaluations:IngestBase
+    {                
         public TeacherEvaluations(LogHandler LogObject, ODL.Common.DBConnectionDetails DbConnectionInfo, String FileName) : base(LogObject, DbConnectionInfo, FileName)
         {
-            throw new NotImplementedException();
+            
         }
 
         /// <summary>
@@ -16,6 +19,59 @@ namespace ODL.Common
         /// </summary>
         /// <returns>(Int32)Count of Records in the File</returns>
         public override Int32 LoadRecordsFromFile() {
+            using (ZipArchive archive = ZipFile.OpenRead(base.dataFile.FullName))
+            {
+                foreach (ZipArchiveEntry entry in archive.Entries)
+                {
+                    if (entry.FullName.EndsWith(".mdb", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!Directory.Exists(IngestBase.TEMP_FOLDER))
+                        {
+                            Directory.CreateDirectory(IngestBase.TEMP_FOLDER);
+                        }
+                        string tempPath = IngestBase.TEMP_FOLDER + "\\" + entry.FullName;
+
+                        if (File.Exists(tempPath)) {
+                            File.Delete(tempPath);
+                        }
+
+                        entry.ExtractToFile(tempPath);
+
+                        string connectionString = "Provider = Microsoft.Jet.OLEDB.4.0; Data Source=" + tempPath + ";";
+
+                        using (OleDbConnection connection = new OleDbConnection(connectionString))
+                        {
+                            try {
+                                connection.Open();
+                                List<string> tableNames = new List<string>();
+                                var schema = connection.GetSchema("Tables");
+
+                                foreach (System.Data.DataRow row in schema.Rows)
+                                {
+                                    var tableName = row["TABLE_NAME"].ToString();
+                                    //Exclude the system tables
+                                    if (!tableName.StartsWith("MSys"))
+                                    {
+                                        tableNames.Add(tableName);
+                                    }
+                                }
+
+                                foreach (var tableName in tableNames)
+                                {
+                                    Console.WriteLine(tableName);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+                        }
+
+                        File.Delete(tempPath);
+                    }
+                }
+            }
+
             throw new NotImplementedException();
         }
 
