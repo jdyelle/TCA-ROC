@@ -1,8 +1,13 @@
+using Microsoft.Extensions.Logging;
+using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.OleDb;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ODL.Common
 {
@@ -19,6 +24,8 @@ namespace ODL.Common
         /// </summary>
         /// <returns>(Int32)Count of Records in the File</returns>
         public override Int32 LoadRecordsFromFile() {
+            Int32 recordCount = 0;
+
             using (ZipArchive archive = ZipFile.OpenRead(base.dataFile.FullName))
             {
                 foreach (ZipArchiveEntry entry in archive.Entries)
@@ -46,9 +53,10 @@ namespace ODL.Common
                                 List<string> tableNames = new List<string>();
                                 var schema = connection.GetSchema("Tables");
 
-                                foreach (System.Data.DataRow row in schema.Rows)
+                                foreach (DataRow row in schema.Rows)
                                 {
                                     var tableName = row["TABLE_NAME"].ToString();
+
                                     //Exclude the system tables
                                     if (!tableName.StartsWith("MSys"))
                                     {
@@ -56,14 +64,57 @@ namespace ODL.Common
                                     }
                                 }
 
+                                recordCount = tableNames.Count;
+
                                 foreach (var tableName in tableNames)
                                 {
+                                    DataTable data = null;
+
+                                    using (OleDbCommand command = new OleDbCommand(string.Empty, connection))
+                                    {
+                                        command.CommandText = "SELECT * FROM " + tableName;
+
+                                        using (OleDbDataReader reader = command.ExecuteReader())
+                                        {
+                                            data.Load(reader);
+                                        }
+                                    }
+
+                                    try
+                                    {
+                                        base.PostgresConnection.Open();
+
+                                        using (NpgsqlCommand command = new NpgsqlCommand(string.Empty, base.PostgresConnection))
+                                        {
+                                            command.CommandText = "CREATE TABLE " + tableName;
+
+                                            command.ExecuteNonQuery();
+                                        }
+
+                                        using (MemoryStream stream = new MemoryStream())
+                                        {
+                                            IFormatter formatter = new BinaryFormatter();
+                                            formatter.Serialize(stream, data);
+
+                                            byte[] bytes = stream.GetBuffer();
+
+                                            using (var outStream = base.PostgresConnection.BeginRawBinaryCopy("COPY " + tableName + " FROM STDIN (FORMAT BINARY)"))
+                                            {
+                                                outStream.Write(bytes, 0, data.Rows.Count);
+                                            }
+                                        }
+                                    }
+                                    finally
+                                    {
+                                        base.PostgresConnection.Close();
+                                    }
+
                                     Console.WriteLine(tableName);
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine(ex.Message);
+                                base.logger.LogError("Can't connect to the database with specified parameters: " + ex.Message);
                             }
                         }
 
@@ -72,15 +123,16 @@ namespace ODL.Common
                 }
             }
 
-            throw new NotImplementedException();
+            return recordCount;
         }
 
         /// <summary>
         /// This method should verify/create a database table that fits the data format that is being loaded for the table type.
         /// Ideally, there would be a hashid of each record as the PK that will prevent duplicate entries if the same file is loaded twice.
         /// </summary>
-        public override void CreateDatabaseTable() {
-
+        public override void CreateDatabaseTable()
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

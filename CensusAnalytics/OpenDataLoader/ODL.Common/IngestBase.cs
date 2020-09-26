@@ -12,8 +12,8 @@ namespace ODL.Common
         protected const string TEMP_FOLDER = "D:\\Temp";
         protected LogHandler logger;
         protected FileInfo dataFile;
-        private List<String> PreviouslyLoadedRecords;
-        private Npgsql.NpgsqlConnection PostgresConnection = null;
+        protected List<String> PreviouslyLoadedRecords;
+        protected Npgsql.NpgsqlConnection PostgresConnection = null;
 
         public IngestBase(LogHandler LogObject, ODL.Common.DBConnectionDetails DbConnectionInfo, String FileName)
         {
