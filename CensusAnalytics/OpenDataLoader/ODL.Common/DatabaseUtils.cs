@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -20,24 +21,45 @@ namespace ODL.Common
                 _connString.Host = dbConnectionInfo.DBServer;
                 Npgsql.NpgsqlConnection _dbConnection = new Npgsql.NpgsqlConnection(_connString.ConnectionString);
                 _dbConnection.Open();
-
                 return _dbConnection;
             }
         }
 
-        public static void Save(DBConnectionDetails DBConnection)
+        public static void Save(DBConnectionDetails DBConnection, LogHandler Logger)
         {
-            String _Serialized = Newtonsoft.Json.JsonConvert.SerializeObject(DBConnection);
-            File.WriteAllText("./DBConnectionConfig.json", _Serialized);
+            if (Logger.DebugMode) Logger.LogDebug("Enter Save DBConnection Method");
+            try
+            {
+                DBConnection.DBPassword = Encrypt(DBConnection.DBPassword, DBConnection.DBServer, DBConnection.DBUsername);
+                String _Serialized = Newtonsoft.Json.JsonConvert.SerializeObject(DBConnection, Newtonsoft.Json.Formatting.Indented);
+                File.WriteAllText("./DBConnectionConfig.json", _Serialized);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Could not save Database Connection Settings file. " + ex.Message);
+            }
+
         }
 
-        public static DBConnectionDetails Load()
+        public static DBConnectionDetails Load(LogHandler Logger)
         {
+            if (Logger.DebugMode) Logger.LogDebug("Enter Load DBConnection Method");
             DBConnectionDetails _ReturnObject = null;
             if (File.Exists("./DBConnectionConfig.json"))
             {
-                String _LoadedFile = Encoding.UTF8.GetString(File.ReadAllBytes("./DBConnectionConfig.json"));
-                _ReturnObject = Newtonsoft.Json.JsonConvert.DeserializeObject<DBConnectionDetails>(_LoadedFile);
+                try
+                {
+                    String _LoadedFile = Encoding.UTF8.GetString(File.ReadAllBytes("./DBConnectionConfig.json"));
+                    _ReturnObject = Newtonsoft.Json.JsonConvert.DeserializeObject<DBConnectionDetails>(_LoadedFile);
+                    _ReturnObject.DBPassword = Decrypt(_ReturnObject.DBPassword, _ReturnObject.DBServer, _ReturnObject.DBUsername);
+                    Logger.LogInformation("Found and loaded saved Database Connection Settings file.");
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("Found but could not load saved Database Connection Settings file." + ex.Message);
+                    _ReturnObject = new DBConnectionDetails();
+                }
+
             }
             else
             {

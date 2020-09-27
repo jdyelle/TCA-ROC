@@ -15,6 +15,7 @@ namespace OpenDataLoader
     public partial class UIMainScreen : Form
     {
         internal ODL.Common.LogHandler Logger;
+        internal ODL.Common.DBConnectionDetails ConnectionDetails;
 
         public UIMainScreen()
         {
@@ -23,9 +24,11 @@ namespace OpenDataLoader
             Logger = new ODL.Common.LogHandler();
             Logger.DebugMode = true;
             Logger.LogTableUpdated += RefreshLogGrid;
-            Logger.LogInformation("Welcome to OpenDataLoader -- please make sure your database connection looks right.");
-            
+            Logger.LogInformation("Welcome to OpenDataLoader.");
+            if (Logger.DebugMode) Logger.LogDebug("Created Logger");
+
             //Populate dropdown for dbtype
+            if (Logger.DebugMode) Logger.LogTrace("Creating Dropdown Selections");
             List<KeyValuePair<String, String>> lstDBTypes = new List<KeyValuePair<String, String>>();
             Array DBtypes = Enum.GetValues(typeof(ODL.Common.SupportedDatabases));
             foreach (ODL.Common.SupportedDatabases _entry in DBtypes)
@@ -41,13 +44,14 @@ namespace OpenDataLoader
             cmbFileSource.ValueMember = "Value";
             cmbFileSource.DataSource = ConvolutedWayToMakeNestedDropdowns();
 
+            if (Logger.DebugMode) Logger.LogTrace("Loading DBConfig from json (if available)");
             //Load config from json
-            ODL.Common.DBConnectionDetails ConnectionDetails = ODL.Common.DatabaseUtils.Load();
+            ConnectionDetails = ODL.Common.DatabaseUtils.Load(Logger);
             txtDBUsername.Text = ConnectionDetails.DBUsername;
             txtDBPassword.Text = ConnectionDetails.DBPassword;
             txtDBServer.Text = ConnectionDetails.DBServer;
             txtDBCatalog.Text = ConnectionDetails.DBCatalog;
-            cmbDatabaseType.SelectedIndex = (int)ConnectionDetails.DBType;
+            cmbDatabaseType.Text = ConnectionDetails.DBType.ToString();
 
         }
 
@@ -125,6 +129,7 @@ namespace OpenDataLoader
 
         private void cmbFileSource_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (Logger.DebugMode) Logger.LogTrace("Method: cmbFileSource_SelectedIndexChanged");
             cmbFileType.DisplayMember = "Key";
             cmbFileType.ValueMember = "Value";
             cmbFileType.DataSource = cmbFileSource.SelectedValue;
@@ -132,14 +137,27 @@ namespace OpenDataLoader
 
         private void btnSaveDBInfo_Click(object sender, EventArgs e)
         {
+            if (Logger.DebugMode) Logger.LogTrace("Method: btnSaveDBInfo_Click");
             DBConnectionDetails _tempObject = new DBConnectionDetails();
             _tempObject.DBUsername = txtDBUsername.Text;
             _tempObject.DBPassword = txtDBPassword.Text;
             _tempObject.DBServer = txtDBServer.Text;
-            _tempObject.DBCatalog = txtDBCatalog.Text;
+            _tempObject.DBCatalog = txtDBCatalog.Text;            
             _tempObject.DBType = (SupportedDatabases)Enum.Parse(typeof(SupportedDatabases), cmbDatabaseType.Text);
 
-            ODL.Common.DatabaseUtils.Save(_tempObject);
+            ODL.Common.DatabaseUtils.Save(_tempObject, Logger);
+        }
+
+        private void btnExitApp_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void chkDebugMode_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Logger.DebugMode) Logger.LogTrace("Method: chkDebugMode_CheckedChanged");
+            if (chkDebugMode.Checked) Logger.DebugMode = true;
+            if (!chkDebugMode.Checked) Logger.DebugMode = false;
         }
     }
 }

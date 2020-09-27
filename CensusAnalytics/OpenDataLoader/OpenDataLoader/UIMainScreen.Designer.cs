@@ -286,6 +286,7 @@
             this.btnExitApp.TabIndex = 90;
             this.btnExitApp.Text = "Exit Application";
             this.btnExitApp.UseVisualStyleBackColor = true;
+            this.btnExitApp.Click += new System.EventHandler(this.btnExitApp_Click);
             // 
             // chkDebugMode
             // 
@@ -296,6 +297,7 @@
             this.chkDebugMode.TabIndex = 80;
             this.chkDebugMode.Text = "Debug Mode";
             this.chkDebugMode.UseVisualStyleBackColor = true;
+            this.chkDebugMode.CheckedChanged += new System.EventHandler(this.chkDebugMode_CheckedChanged);
             // 
             // btnPreviousFiles
             // 
