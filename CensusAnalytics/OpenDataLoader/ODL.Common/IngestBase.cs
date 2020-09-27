@@ -9,16 +9,16 @@ namespace ODL.Common
 {
     public abstract class IngestBase
     {
-        protected const string TEMP_FOLDER = "D:\\Temp";
-        protected LogHandler logger;
-        protected FileInfo dataFile;
+        protected const string TEMP_FOLDER = @".\TEMP\";
+        protected LogHandler Logger;
+        protected FileInfo DataFile;
         protected List<String> PreviouslyLoadedRecords;
         protected Npgsql.NpgsqlConnection PostgresConnection = null;
 
         public IngestBase(LogHandler LogObject, ODL.Common.DBConnectionDetails DbConnectionInfo, String FileName)
         {
-            this.logger = LogObject;
-            this.dataFile = new FileInfo(FileName);
+            this.Logger = LogObject;
+            this.DataFile = new FileInfo(FileName);
 
             try
             {

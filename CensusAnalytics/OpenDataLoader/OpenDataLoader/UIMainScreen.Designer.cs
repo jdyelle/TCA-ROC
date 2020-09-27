@@ -277,6 +277,7 @@
             this.btnLoadSelectedFile.TabIndex = 60;
             this.btnLoadSelectedFile.Text = "Load Selected File";
             this.btnLoadSelectedFile.UseVisualStyleBackColor = true;
+            this.btnLoadSelectedFile.Click += new System.EventHandler(this.btnLoadSelectedFile_Click);
             // 
             // btnExitApp
             // 

@@ -159,5 +159,10 @@ namespace OpenDataLoader
             if (chkDebugMode.Checked) Logger.DebugMode = true;
             if (!chkDebugMode.Checked) Logger.DebugMode = false;
         }
+
+        private void btnLoadSelectedFile_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

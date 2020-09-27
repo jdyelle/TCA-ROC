@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30330.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenDataLoader", "OpenDataLoader\OpenDataLoader.csproj", "{6F8F1993-CB47-48FA-AED2-5DBF2B37CBC6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ODL.Common", "ODL.Common\ODL.Common.csproj", "{3CBE50E4-7F18-4BCD-9CAB-7D1F7B6AA4BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ODL.Common", "ODL.Common\ODL.Common.csproj", "{3CBE50E4-7F18-4BCD-9CAB-7D1F7B6AA4BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

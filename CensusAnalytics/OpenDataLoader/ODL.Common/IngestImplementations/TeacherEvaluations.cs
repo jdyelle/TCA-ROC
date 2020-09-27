@@ -26,7 +26,7 @@ namespace ODL.Common
         public override Int32 LoadRecordsFromFile() {
             Int32 recordCount = 0;
 
-            using (ZipArchive archive = ZipFile.OpenRead(base.dataFile.FullName))
+            using (ZipArchive archive = ZipFile.OpenRead(base.DataFile.FullName))
             {
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {
@@ -114,7 +114,7 @@ namespace ODL.Common
                             }
                             catch (Exception ex)
                             {
-                                base.logger.LogError("Can't connect to the database with specified parameters: " + ex.Message);
+                                base.Logger.LogError("Can't connect to the database with specified parameters: " + ex.Message);
                             }
                         }
 
