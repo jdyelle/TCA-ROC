@@ -7,12 +7,13 @@ using System.Text;
 
 namespace ODL.Common
 {
-    internal abstract class IngestBase
+    public abstract class IngestBase
     {
-        private LogHandler logger;
-        private FileInfo dataFile;
-        private List<String> PreviouslyLoadedRecords;
-        private Npgsql.NpgsqlConnection PostgresConnection = null;
+        protected const string TEMP_FOLDER = "D:\\Temp";
+        protected LogHandler logger;
+        protected FileInfo dataFile;
+        protected List<String> PreviouslyLoadedRecords;
+        protected Npgsql.NpgsqlConnection PostgresConnection = null;
 
         public IngestBase(LogHandler LogObject, ODL.Common.DBConnectionDetails DbConnectionInfo, String FileName)
         {
@@ -21,12 +22,12 @@ namespace ODL.Common
 
             try
             {
-                //Figure out which type of database we have and test the connection.
-                if (DbConnectionInfo.DBType == ODL.Common.SupportedDatabases.PostgreSQL) PostgresConnection = DatabaseUtils.Postgres.ConnectToPostGRES(DbConnectionInfo);
+               //Figure out which type of database we have and test the connection.
+               if (DbConnectionInfo.DBType == ODL.Common.SupportedDatabases.PostgreSQL) PostgresConnection = DatabaseUtils.Postgres.ConnectToPostGRES(DbConnectionInfo);
             }
             catch (Exception ex)
             {
-                LogObject.LogError("Can't connect to the database with specified parameters: " + ex.Message);
+               LogObject.LogError("Can't connect to the database with specified parameters: " + ex.Message);
             }
         }
 
