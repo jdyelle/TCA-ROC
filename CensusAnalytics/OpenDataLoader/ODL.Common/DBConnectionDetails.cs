@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ODL.Common
 {
     public class DBConnectionDetails
     {
-        public string DBServer;
-        public string DBCatalog;
-        public string DBUsername;
-        public string DBPassword;
-        public SupportedDatabases DBType;
+        public string DBServer = String.Empty;
+        public string DBCatalog = String.Empty;
+        public string DBUsername = String.Empty;
+        public string DBPassword = String.Empty;
+        public SupportedDatabases DBType = SupportedDatabases.PostgreSQL;
     }
 
     public enum SupportedDatabases

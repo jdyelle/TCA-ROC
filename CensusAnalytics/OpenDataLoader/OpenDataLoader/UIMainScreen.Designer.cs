@@ -230,6 +230,7 @@
             this.btnSaveDBInfo.TabIndex = 160;
             this.btnSaveDBInfo.Text = "Save DB Information";
             this.btnSaveDBInfo.UseVisualStyleBackColor = true;
+            this.btnSaveDBInfo.Click += new System.EventHandler(this.btnSaveDBInfo_Click);
             // 
             // txtDBPassword
             // 
@@ -289,7 +290,7 @@
             // chkDebugMode
             // 
             this.chkDebugMode.AutoSize = true;
-            this.chkDebugMode.Location = new System.Drawing.Point(624, 395);
+            this.chkDebugMode.Location = new System.Drawing.Point(601, 395);
             this.chkDebugMode.Name = "chkDebugMode";
             this.chkDebugMode.Size = new System.Drawing.Size(95, 19);
             this.chkDebugMode.TabIndex = 80;

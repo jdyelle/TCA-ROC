@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using ODL.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,10 +24,7 @@ namespace OpenDataLoader
             Logger.DebugMode = true;
             Logger.LogTableUpdated += RefreshLogGrid;
             Logger.LogInformation("Welcome to OpenDataLoader -- please make sure your database connection looks right.");
-
-            //Load config from json
-
-
+            
             //Populate dropdown for dbtype
             List<KeyValuePair<String, String>> lstDBTypes = new List<KeyValuePair<String, String>>();
             Array DBtypes = Enum.GetValues(typeof(ODL.Common.SupportedDatabases));
@@ -43,6 +41,13 @@ namespace OpenDataLoader
             cmbFileSource.ValueMember = "Value";
             cmbFileSource.DataSource = ConvolutedWayToMakeNestedDropdowns();
 
+            //Load config from json
+            ODL.Common.DBConnectionDetails ConnectionDetails = ODL.Common.DatabaseUtils.Load();
+            txtDBUsername.Text = ConnectionDetails.DBUsername;
+            txtDBPassword.Text = ConnectionDetails.DBPassword;
+            txtDBServer.Text = ConnectionDetails.DBServer;
+            txtDBCatalog.Text = ConnectionDetails.DBCatalog;
+            cmbDatabaseType.SelectedIndex = (int)ConnectionDetails.DBType;
 
         }
 
@@ -111,9 +116,9 @@ namespace OpenDataLoader
         public void RefreshLogGrid(object sender, bool refresh)
         {
             dgMessages.DataSource = Logger.LogRecords;
-            dgMessages.Columns[0].Width = 120;
-            dgMessages.Columns[1].Width = 95;
-            dgMessages.Columns[2].Width = 600;
+            dgMessages.Columns[0].Width = (int)(dgMessages.Width * .15);
+            dgMessages.Columns[1].Width = (int)(dgMessages.Width * .10);
+            dgMessages.Columns[2].Width = (int)(dgMessages.Width * .65);
             dgMessages.Update();
             dgMessages.Refresh();
         }
@@ -123,6 +128,18 @@ namespace OpenDataLoader
             cmbFileType.DisplayMember = "Key";
             cmbFileType.ValueMember = "Value";
             cmbFileType.DataSource = cmbFileSource.SelectedValue;
+        }
+
+        private void btnSaveDBInfo_Click(object sender, EventArgs e)
+        {
+            DBConnectionDetails _tempObject = new DBConnectionDetails();
+            _tempObject.DBUsername = txtDBUsername.Text;
+            _tempObject.DBPassword = txtDBPassword.Text;
+            _tempObject.DBServer = txtDBServer.Text;
+            _tempObject.DBCatalog = txtDBCatalog.Text;
+            _tempObject.DBType = (SupportedDatabases)Enum.Parse(typeof(SupportedDatabases), cmbDatabaseType.Text);
+
+            ODL.Common.DatabaseUtils.Save(_tempObject);
         }
     }
 }
