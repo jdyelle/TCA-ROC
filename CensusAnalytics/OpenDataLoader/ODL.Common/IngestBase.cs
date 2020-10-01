@@ -161,7 +161,7 @@ namespace ODL.Common
                             tableNames.Add(tableName);
                         }
                     }
-                    
+
                     foreach (var tableName in tableNames)
                     {
                         DataTable data = mdbData.Tables.Add(tableName + "_DATA");
@@ -188,6 +188,58 @@ namespace ODL.Common
             }
 
             return mdbData;
+        }
+
+        /// <summary>
+        /// Parse XLS/XLSX file and return data as a datatable
+        /// </summary>
+        /// <returns></returns>
+        protected DataSet RetrieveFromExcelFile(string fileName)
+        {
+            DataSet excelDataSet = new DataSet();
+            
+            string connectionString = string.Empty;
+
+            switch (new FileInfo(fileName).Extension)
+            {
+                case ".xls": //Excel 97-03  
+                    connectionString = "Provider=Microsoft.Jet.OLEDB.4.0; Data Source='" + fileName + "'; Extended Properties='Excel 8.0;HDR=YES;';";
+                    break;
+
+                case ".xlsx": //Excel 07  
+                    connectionString = "Provider=Microsoft.ACE.OLEDB.12.0; Data Source=" + fileName + "; Extended Properties='Excel 12.0;HDR=YES;';";
+                    break;
+            }
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+
+                    DataTable dtExcelSchema = connection.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+
+
+                    foreach (DataRow sheet in dtExcelSchema.Rows)
+                    {
+                        string sheetName = sheet["TABLE_NAME"].ToString();
+                        DataTable data = excelDataSet.Tables.Add(sheetName);
+
+                        //TODO: Handle occurence where Excel file has more than 255 columns
+                        using (OleDbDataAdapter adapter = new OleDbDataAdapter("SELECT * FROM [" + sheetName + "]", connection))
+                        {
+                            adapter.Fill(data);
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    this.Logger.LogError(ex, "Errors retrieving data from XLS/XLSX file");
+                }
+            }
+
+            return excelDataSet;
         }
 
         /// <summary>
