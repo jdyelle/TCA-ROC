@@ -13,7 +13,7 @@ namespace ODL.Common
 {
     public abstract class IngestBase
     {
-        protected const string TEMP_FOLDER = @"D:\TEMP\";
+        protected const string TEMP_FOLDER = @".\TEMP\";
         protected LogHandler Logger;
         protected FileInfo DataFile;
         protected List<String> PreviouslyLoadedRecords;
@@ -27,7 +27,7 @@ namespace ODL.Common
             try
             {
                 //Figure out which type of database we have and test the connection.
-                //if (DbConnectionInfo.DBType == ODL.Common.SupportedDatabases.PostgreSQL) PostgresConnection = DatabaseUtils.Postgres.ConnectToPostGRES(DbConnectionInfo);
+                if (DbConnectionInfo.DBType == ODL.Common.SupportedDatabases.PostgreSQL) PostgresConnection = DatabaseUtils.Postgres.ConnectToPostGRES(DbConnectionInfo);
             }
             catch (Exception ex)
             {

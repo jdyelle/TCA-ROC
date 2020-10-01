@@ -1,15 +1,8 @@
-using Microsoft.Extensions.Logging;
-using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using Npgsql.PostgresTypes;
-using NpgsqlTypes;
 
 namespace ODL.Common
 {
