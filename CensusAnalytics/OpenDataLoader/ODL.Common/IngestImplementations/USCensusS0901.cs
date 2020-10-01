@@ -10,12 +10,13 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using Npgsql.PostgresTypes;
 using NpgsqlTypes;
+using System.Linq;
 
 namespace ODL.Common
 {
-    public class TeacherEvaluations : IngestBase
+    public class USCensusS0901 : IngestBase
     {
-        public TeacherEvaluations(LogHandler LogObject, ODL.Common.DBConnectionDetails DbConnectionInfo, String FileName) : base(LogObject, DbConnectionInfo, FileName)
+        public USCensusS0901(LogHandler LogObject, ODL.Common.DBConnectionDetails DbConnectionInfo, String FileName) : base(LogObject, DbConnectionInfo, FileName)
         {
 
         }
@@ -36,53 +37,32 @@ namespace ODL.Common
                     //Find the matching files
                     if (VerifyDesirableFile(entry))
                     {
-                        string tempPath = IngestBase.TEMP_FOLDER + "\\" + entry.FullName;
+                        string tempPath = IngestBase.TEMP_FOLDER + "\\" + entry.Name.Replace(".","").Replace(".csv", "") + ".csv";
 
+                        //Find the matching files
                         //Extract file to a temporary location
                         if (ExtractFileToTempLocation(entry, tempPath))
                         {
                             //Read Access (.mdb) files
-                            string connectionString = "Provider = Microsoft.Jet.OLEDB.4.0; Data Source=" + tempPath + ";";
+                            string connectionString = "Provider = Microsoft.Jet.OLEDB.4.0; Data Source=" + IngestBase.TEMP_FOLDER + ";" + "Extended Properties=\"Text;HDR=Yes;FMT=Delimited\"";
 
                             using (OleDbConnection connection = new OleDbConnection(connectionString))
                             {
                                 try
                                 {
                                     connection.Open();
-                                    List<string> tableNames = new List<string>();
-                                    var tables = connection.GetSchema("Tables");
+                                    DataTable schema = null;
+                                    DataTable data = new DataTable();
 
-                                    foreach (DataRow row in tables.Rows)
+                                    using (OleDbDataAdapter adapter = new OleDbDataAdapter("SELECT * FROM [" + entry.Name.Replace(".", "").Replace(".csv", "") + ".csv" + "]", connection))
                                     {
-                                        var tableName = row["TABLE_NAME"].ToString();
-
-                                        //Exclude the system tables
-                                        if (!tableName.StartsWith("MSys"))
-                                        {
-                                            tableNames.Add(tableName);
-                                        }
+                                        adapter.Fill(data);
                                     }
 
-                                    recordCount = tableNames.Count;
+                                    recordCount++;
 
-                                    foreach (var tableName in tableNames)
-                                    {
-                                        DataTable schema = null;
-                                        DataTable data = new DataTable();
+                                    WriteToPostgres(entry.Name, schema, data);
 
-                                        using (OleDbCommand command = new OleDbCommand(string.Empty, connection))
-                                        {
-                                            command.CommandText = "SELECT * FROM " + tableName;
-
-                                            using (OleDbDataReader reader = command.ExecuteReader())
-                                            {
-                                                schema = reader.GetSchemaTable();
-                                                data.Load(reader);
-                                            }
-                                        }
-
-                                        WriteToPostgres(tableName, schema, data);
-                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -124,7 +104,7 @@ namespace ODL.Common
         /// <returns></returns>
         private bool VerifyDesirableFile(ZipArchiveEntry entry)
         {
-            return entry.FullName.EndsWith(".mdb", StringComparison.OrdinalIgnoreCase);
+            return entry.FullName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) && !entry.FullName.Contains("_metadata_");
         }
 
         /// <summary>
