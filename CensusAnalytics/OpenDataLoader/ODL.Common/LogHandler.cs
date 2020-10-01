@@ -15,9 +15,9 @@ namespace ODL.Common
         {
             this.DebugMode = DebugMode;
             this.LogRecords = new DataTable("LogRecords");
-            LogRecords.Columns.Add("Timestamp", typeof(DateTime));
-            LogRecords.Columns.Add("LogLevel", typeof(String));
-            LogRecords.Columns.Add("Message", typeof(String));
+            this.LogRecords.Columns.Add("Timestamp", typeof(DateTime));
+            this.LogRecords.Columns.Add("LogLevel", typeof(String));
+            this.LogRecords.Columns.Add("Message", typeof(String));
         }
 
         IDisposable ILogger.BeginScope<TState>(TState state)
@@ -33,9 +33,9 @@ namespace ODL.Common
         void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             
-            DataRow _row = LogRecords.NewRow();
+            DataRow _row = this.LogRecords.NewRow();
             _row.ItemArray = new object[] { DateTime.Now, logLevel, formatter(state, exception) };
-            LogRecords.Rows.Add(_row);
+            this.LogRecords.Rows.Add(_row);
             LogTableUpdated(null, true);
         }
 

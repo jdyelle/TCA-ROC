@@ -33,61 +33,24 @@ namespace ODL.Common
             {
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {
-                    //Find the matching files
                     if (VerifyDesirableFile(entry))
                     {
                         string tempPath = IngestBase.TEMP_FOLDER + "\\" + entry.FullName;
-
-                        //Extract file to a temporary location
+                        
                         if (ExtractFileToTempLocation(entry, tempPath))
                         {
-                            //Read Access (.mdb) files
-                            string connectionString = "Provider = Microsoft.Jet.OLEDB.4.0; Data Source=" + tempPath + ";";
+                            DataSet data = RetrieveFromMDBFile(tempPath);
 
-                            using (OleDbConnection connection = new OleDbConnection(connectionString))
+                            foreach (DataTable table in data.Tables)
                             {
-                                try
+                                if (table.TableName.EndsWith("_SCHEMA"))
                                 {
-                                    connection.Open();
-                                    List<string> tableNames = new List<string>();
-                                    var tables = connection.GetSchema("Tables");
-
-                                    foreach (DataRow row in tables.Rows)
-                                    {
-                                        var tableName = row["TABLE_NAME"].ToString();
-
-                                        //Exclude the system tables
-                                        if (!tableName.StartsWith("MSys"))
-                                        {
-                                            tableNames.Add(tableName);
-                                        }
-                                    }
-
-                                    recordCount = tableNames.Count;
-
-                                    foreach (var tableName in tableNames)
-                                    {
-                                        DataTable schema = null;
-                                        DataTable data = new DataTable();
-
-                                        using (OleDbCommand command = new OleDbCommand(string.Empty, connection))
-                                        {
-                                            command.CommandText = "SELECT * FROM " + tableName;
-
-                                            using (OleDbDataReader reader = command.ExecuteReader())
-                                            {
-                                                schema = reader.GetSchemaTable();
-                                                data.Load(reader);
-                                            }
-                                        }
-
-                                        WriteToPostgres(tableName, schema, data);
-                                    }
+                                    continue;
                                 }
-                                catch (Exception ex)
-                                {
-                                    base.Logger.LogError("Can't connect to the database with specified parameters: " + ex.Message);
-                                }
+
+                                recordCount++;
+
+                                WriteToPostgres(table.TableName, GetMatchingSchemaTable(table.TableName.Replace("_DATA", "_SCHEMA"), data), table);
                             }
 
                             File.Delete(tempPath);
@@ -125,144 +88,6 @@ namespace ODL.Common
         private bool VerifyDesirableFile(ZipArchiveEntry entry)
         {
             return entry.FullName.EndsWith(".mdb", StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Takes a file within a zip archive and safely extracts it to the target path
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <param name="targetPath"></param>
-        /// <returns>sucess = true, or failure</returns>
-        private bool ExtractFileToTempLocation(ZipArchiveEntry entry, string targetPath)
-        {
-            bool success = false;
-
-            try
-            {
-                if (!Directory.Exists(IngestBase.TEMP_FOLDER))
-                {
-                    Directory.CreateDirectory(IngestBase.TEMP_FOLDER);
-                }
-
-                if (File.Exists(targetPath))
-                {
-                    File.Delete(targetPath);
-                }
-
-                entry.ExtractToFile(targetPath);
-
-                success = true;
-            }
-            catch (Exception ex)
-            {
-                base.Logger.LogError(ex, "Error Extracting File to Temp Location");
-            }
-
-            return success;
-        }
-
-        /// <summary>
-        /// Converts from .Net Type DataRow to PostGres SQL column definition type (hopefully)
-        /// </summary>
-        /// <param name="row"></param>
-        /// <returns></returns>
-        /// <remarks>Not using NpgsqlDbType because it cannot be cleaning converted</remarks>
-        private string ConvertToPostGresType(DataRow row)
-        {
-            string columnDefinition = row.Field<string>("ColumnName") + " ";
-
-            switch (row.Field<Type>("DataType").FullName)
-            {
-                case "System.Int64":
-                    columnDefinition += "int8 (" + row.Field<int>("ColumnSize") + ")";
-                    break;
-                case "System.Boolean":
-                    columnDefinition += "bool";
-                    break;
-                case "System.Byte[]":
-                    columnDefinition += "bytea";
-                    break;
-                case "System.DateTime":
-                    columnDefinition += "date";
-                    break;
-                case "System.Double":
-                    columnDefinition += "float8 (" + row.Field<int>("NumericPrecision") + ", " + row.Field<int>("NumericScale") + ")";
-                    break;
-                case "System.Int32":
-                    columnDefinition += "int4 (" + row.Field<int>("ColumnSize") + ")";
-                    break;
-                case "System.Decimal":
-                    columnDefinition += "numeric (" + row.Field<int>("NumericPrecision") + ", " + row.Field<int>("NumericScale") + ")";
-                    break;
-                case "System.Single":
-                    columnDefinition += "float4 (" + row.Field<int>("NumericPrecision") + ", " + row.Field<int>("NumericScale") + ")";
-                    break;
-                case "System.Int16":
-                    columnDefinition += "int2 (" + row.Field<int>("ColumnSize") + ")";
-                    break;
-                case "System.TimeSpan":
-                    columnDefinition += "interval";
-                    break;
-                case "System.IPAddress":
-                    columnDefinition += "inet";
-                    break;
-                case "System.Guid":
-                    columnDefinition += "uuid";
-                    break;
-                case "System.Array":
-                    columnDefinition += "array";
-                    break;
-                default:
-                    columnDefinition += "varchar (" + row.Field<int>("ColumnSize") + ")";
-                    break;
-            }
-
-            return columnDefinition;
-        }
-
-        /// <summary>
-        /// Takes in-memory information (datatables) and creates a Postgres table and populates that table
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="schema"></param>
-        /// <param name="data"></param>
-        private void WriteToPostgres(string tableName, DataTable schema, DataTable data)
-        {
-            try
-            {
-                base.PostgresConnection.Open();
-
-                using (NpgsqlCommand command = new NpgsqlCommand(string.Empty, base.PostgresConnection))
-                {
-                    command.CommandText = "CREATE TABLE " + tableName + " (";
-
-                    foreach (DataRow row in schema.Rows)
-                    {
-                        command.CommandText += ConvertToPostGresType(row) + ", ";
-                    }
-
-                    command.CommandText = command.CommandText.TrimEnd(new char[] { ',', ' ' }) + " );";
-
-                    command.ExecuteNonQuery();
-                }
-
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    IFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, data);
-
-                    byte[] bytes = stream.GetBuffer();
-
-                    using (var outStream = base.PostgresConnection.BeginRawBinaryCopy("COPY " + tableName + " FROM STDIN (FORMAT BINARY)"))
-                    {
-                        outStream.Write(bytes, 0, data.Rows.Count);
-                    }
-                }
-            }
-            finally
-            {
-                base.PostgresConnection.Close();
-            }
         }
     }
 }
