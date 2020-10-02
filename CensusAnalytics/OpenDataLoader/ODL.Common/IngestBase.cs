@@ -81,7 +81,7 @@ namespace ODL.Common
         public string ReplaceInvalidChars(string filename)
         {
             //return string.Join("_", filename.Split(Path.GetInvalidFileNameChars()));
-            return Regex.Replace(filename, @"[^a-zA-Z0-9_-]+", "_");
+            return Regex.Replace(filename, @"[^a-zA-Z0-9_]+", "_");
         }
 
         /// <summary>

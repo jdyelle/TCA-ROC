@@ -51,6 +51,7 @@ namespace OpenDataLoader
             txtDBPassword.Text = ConnectionDetails.DBPassword;
             txtDBServer.Text = ConnectionDetails.DBServer;
             txtDBCatalog.Text = ConnectionDetails.DBCatalog;
+            txtDBPort.Text = ConnectionDetails.DBPort.ToString();
             cmbDatabaseType.Text = ConnectionDetails.DBType.ToString();
 
         }
@@ -137,12 +138,15 @@ namespace OpenDataLoader
 
         private void btnSaveDBInfo_Click(object sender, EventArgs e)
         {
+            int port = 0;
+
             if (Logger.DebugMode) Logger.LogTrace("Method: btnSaveDBInfo_Click");
             DBConnectionDetails _tempObject = new DBConnectionDetails();
             _tempObject.DBUsername = txtDBUsername.Text;
             _tempObject.DBPassword = txtDBPassword.Text;
             _tempObject.DBServer = txtDBServer.Text;
-            _tempObject.DBCatalog = txtDBCatalog.Text;            
+            _tempObject.DBCatalog = txtDBCatalog.Text;     
+            _tempObject.DBPort = int.TryParse(txtDBPort.Text, out port) ? port : -1;       
             _tempObject.DBType = (SupportedDatabases)Enum.Parse(typeof(SupportedDatabases), cmbDatabaseType.Text);
 
             ODL.Common.DatabaseUtils.Save(_tempObject, Logger);
@@ -162,7 +166,21 @@ namespace OpenDataLoader
 
         private void btnLoadSelectedFile_Click(object sender, EventArgs e)
         {
+            ODL.Common.IngestBase ingest = null;
+            
+            //TODO Need some validations
+            switch(cmbFileSource.SelectedValue) {
+                case "NYSTeacherEval":
+                    ingest = new ODL.Common.TeacherEvaluations(Logger, ConnectionDetails, txtFileName.Text);
+                    break;
+                    
+                default:
+                    Logger.LogWarning("File Source not supported");
+                    break;
+            }
 
+            //TODO This needs to be made into a task/thread?
+            ingest.StartLoading();
         }
     }
 }
