@@ -8,6 +8,7 @@ using System.Data.OleDb;
 using Npgsql;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.RegularExpressions;
 
 namespace ODL.Common
 {
@@ -27,7 +28,7 @@ namespace ODL.Common
             try
             {
                 //Figure out which type of database we have and test the connection.
-                if (DbConnectionInfo.DBType == ODL.Common.SupportedDatabases.PostgreSQL) PostgresConnection = DatabaseUtils.Postgres.ConnectToPostGRES(DbConnectionInfo);
+                if (DbConnectionInfo.DBType == ODL.Common.SupportedDatabases.PostgreSQL) this.PostgresConnection = DatabaseUtils.Postgres.ConnectToPostGRES(DbConnectionInfo);
             }
             catch (Exception ex)
             {
@@ -66,6 +67,22 @@ namespace ODL.Common
         /// </summary>
         public abstract List<String> PopulatePreviouslyLoadedRecords();
 
+        /// <summary>
+        /// Apparently, many organizations like to include periods "." in their file names, so let's do some cleanup
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns>a filename where all of the invalid characters have been replaced with underscores "_"</returns>
+        /// <remarks>
+        /// WHY are we not using string.Join("_", filename.Split(Path.GetInvalidFileNameChars()))?
+        /// Because we're going to potentially be using these filenames for table names, and we want them to be as simple (character set-wise) as possible.
+        /// WHY are we not using the regex [w\]+ or something?
+        /// Screw other character sets; we're running with English characters only.
+        /// </remarks>
+        public string ReplaceInvalidChars(string filename)
+        {
+            //return string.Join("_", filename.Split(Path.GetInvalidFileNameChars()));
+            return Regex.Replace(filename, @"^[a-zA-Z0-9_-]+$", "_");
+        }
 
         /// <summary>
         /// Takes a file within a zip archive and safely extracts it to the target path
@@ -197,7 +214,7 @@ namespace ODL.Common
         protected DataSet RetrieveFromExcelFile(string fileName)
         {
             DataSet excelDataSet = new DataSet();
-            
+
             string connectionString = string.Empty;
 
             switch (new FileInfo(fileName).Extension)
@@ -335,51 +352,42 @@ namespace ODL.Common
         /// <param name="data"></param>
         protected void WriteToPostgres(string tableName, DataTable schema, DataTable data)
         {
-            try
+            using (NpgsqlCommand command = new NpgsqlCommand(string.Empty, this.PostgresConnection))
             {
-                this.PostgresConnection.Open();
+                command.CommandText = "CREATE TABLE " + tableName + " (";
 
-                using (NpgsqlCommand command = new NpgsqlCommand(string.Empty, this.PostgresConnection))
+                if (schema == null)
                 {
-                    command.CommandText = "CREATE TABLE " + tableName + " (";
-
-                    if (schema == null)
+                    foreach (DataColumn column in data.Columns)
                     {
-                        foreach (DataColumn column in data.Columns)
-                        {
-                            command.CommandText += ConvertToPostGresType(column.ColumnName, column.DataType.FullName, column.MaxLength, column.MaxLength, 6) + ", ";
-                        }
-                    }
-                    else
-                    {
-                        foreach (DataRow row in schema.Rows)
-                        {
-                            command.CommandText += ConvertToPostGresType(row.Field<string>("ColumnName"), row.Field<Type>("DataType").FullName,
-                                row.Field<int>("ColumnSize"), row.Field<int>("NumericPrecision"), row.Field<int>("NumericScale")) + ", ";
-                        }
-                    }
-
-                    command.CommandText = command.CommandText.TrimEnd(new char[] { ',', ' ' }) + " );";
-
-                    command.ExecuteNonQuery();
-                }
-
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    IFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, data);
-
-                    byte[] bytes = stream.GetBuffer();
-
-                    using (var outStream = this.PostgresConnection.BeginRawBinaryCopy("COPY " + tableName + " FROM STDIN (FORMAT BINARY)"))
-                    {
-                        outStream.Write(bytes, 0, data.Rows.Count);
+                        command.CommandText += ConvertToPostGresType(column.ColumnName, column.DataType.FullName, column.MaxLength, column.MaxLength, 6) + ", ";
                     }
                 }
+                else
+                {
+                    foreach (DataRow row in schema.Rows)
+                    {
+                        command.CommandText += ConvertToPostGresType(row.Field<string>("ColumnName"), row.Field<Type>("DataType").FullName,
+                            row.Field<int>("ColumnSize"), row.Field<int>("NumericPrecision"), row.Field<int>("NumericScale")) + ", ";
+                    }
+                }
+
+                command.CommandText = command.CommandText.TrimEnd(new char[] { ',', ' ' }) + " );";
+
+                command.ExecuteNonQuery();
             }
-            finally
+
+            using (MemoryStream stream = new MemoryStream())
             {
-                this.PostgresConnection.Close();
+                IFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(stream, data);
+
+                byte[] bytes = stream.GetBuffer();
+
+                using (var outStream = this.PostgresConnection.BeginRawBinaryCopy("COPY " + tableName + " FROM STDIN (FORMAT BINARY)"))
+                {
+                    outStream.Write(bytes, 0, data.Rows.Count);
+                }
             }
         }
     }

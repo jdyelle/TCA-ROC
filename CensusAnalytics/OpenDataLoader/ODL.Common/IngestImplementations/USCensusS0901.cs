@@ -28,13 +28,14 @@ namespace ODL.Common
                 {
                     if (VerifyDesirableFile(entry))
                     {
-                        string tempPath = IngestBase.TEMP_FOLDER + "\\" + entry.Name.Replace(".", "").Replace(".csv", "") + ".csv";
+                        string fileName = ReplaceInvalidChars(entry.Name.Replace(".csv", ""));
+                        string tempPath = IngestBase.TEMP_FOLDER + "\\" + fileName + ".csv";
                         
                         if (ExtractFileToTempLocation(entry, tempPath))
                         {
-                            DataTable data = RetrieveFromCSVFile(entry.Name.Replace(".", "").Replace(".csv", "") + ".csv");
+                            DataTable data = RetrieveFromCSVFile(fileName + ".csv");
                                    
-                            WriteToPostgres(entry.Name, null, data);
+                            WriteToPostgres(fileName, null, data);
                             
                             File.Delete(tempPath);
                         }

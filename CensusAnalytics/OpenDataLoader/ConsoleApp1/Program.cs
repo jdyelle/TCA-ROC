@@ -13,9 +13,11 @@ namespace ConsoleApp1
                 DBCatalog = "",
                 DBUsername = "",
                 DBPassword = "",
-                DBType = SupportedDatabases.PostgreSQL
+                DBType = SupportedDatabases.PostgreSQL,
+                DBPort = 0
             };
             String FileName = "C:\\Users\\Zach\\Downloads\\productDownload_2020-10-01T101650.zip";
+            //String FileName = "C:\\Users\\Zach\\Downloads\\NYSTATE_EVAL_2014.zip";
             IngestBase x = new USCensusS0901(LogObject, DbConnectionInf, FileName);
             x.LoadRecordsFromFile();
         }

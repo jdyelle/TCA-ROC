@@ -19,6 +19,7 @@ namespace ODL.Common
                 _connString.Password = dbConnectionInfo.DBPassword;
                 _connString.Database = dbConnectionInfo.DBCatalog;
                 _connString.Host = dbConnectionInfo.DBServer;
+                _connString.Port = dbConnectionInfo.DBPort;
                 Npgsql.NpgsqlConnection _dbConnection = new Npgsql.NpgsqlConnection(_connString.ConnectionString);
                 _dbConnection.Open();
                 return _dbConnection;
