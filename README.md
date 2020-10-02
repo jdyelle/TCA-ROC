@@ -2,6 +2,10 @@
 
 This is a collaboration on a few projects for volunteer time by a group of friends.
 
+### Just Getting Started:
+ - Take a look at issues #24, 25, 26, and 27. Those have a limited scope.
+ - We're really only working on the Census Analytics project for now. It is composed of a UI component, a backend, and a simple console app to test with.
+
 ### Guidelines:
  - If you're starting a new component, please create a subfolder, a project, and branch.
  - Please track issues / features as functional requirements -- break up the features as you see fit.
