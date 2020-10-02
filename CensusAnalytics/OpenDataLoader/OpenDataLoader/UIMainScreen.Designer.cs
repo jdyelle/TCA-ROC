@@ -30,6 +30,7 @@
         {
             this.boxFileInfo = new System.Windows.Forms.GroupBox();
             this.cmbFileType = new System.Windows.Forms.ComboBox();
+            this.dlgFileBrowser = new System.Windows.Forms.OpenFileDialog();
             this.btnFileSelect = new System.Windows.Forms.Button();
             this.cmbFileSource = new System.Windows.Forms.ComboBox();
             this.txtFileName = new System.Windows.Forms.TextBox();
@@ -93,6 +94,7 @@
             this.btnFileSelect.TabIndex = 20;
             this.btnFileSelect.Text = "Browse";
             this.btnFileSelect.UseVisualStyleBackColor = true;
+            this.btnFileSelect.Click += new System.EventHandler(this.btnFileSelect_Click);
             // 
             // cmbFileSource
             // 
@@ -359,6 +361,7 @@
         private System.Windows.Forms.GroupBox boxFileInfo;
         private System.Windows.Forms.ComboBox cmbFileType;
         private System.Windows.Forms.Button btnFileSelect;
+        private System.Windows.Forms.OpenFileDialog dlgFileBrowser;
         private System.Windows.Forms.ComboBox cmbFileSource;
         private System.Windows.Forms.TextBox txtFileName;
         private System.Windows.Forms.Label lblFileType;

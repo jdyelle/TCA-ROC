@@ -164,6 +164,19 @@ namespace OpenDataLoader
             if (!chkDebugMode.Checked) Logger.DebugMode = false;
         }
 
+        private void btnFileSelect_Click(object sender, EventArgs e)
+        {
+            DialogResult result = dlgFileBrowser.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                txtFileName.Text = dlgFileBrowser.FileName;
+            }
+            else {
+                Logger.LogWarning("Error choosing file");
+            }
+        }
+
         private void btnLoadSelectedFile_Click(object sender, EventArgs e)
         {
             ODL.Common.IngestBase ingest = null;
