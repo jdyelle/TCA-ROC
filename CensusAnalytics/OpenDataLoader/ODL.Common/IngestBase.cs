@@ -81,7 +81,7 @@ namespace ODL.Common
         public string ReplaceInvalidChars(string filename)
         {
             //return string.Join("_", filename.Split(Path.GetInvalidFileNameChars()));
-            return Regex.Replace(filename, @"^[a-zA-Z0-9_-]+$", "_");
+            return Regex.Replace(filename, @"[^a-zA-Z0-9_-]+", "_");
         }
 
         /// <summary>
@@ -360,7 +360,12 @@ namespace ODL.Common
                 {
                     foreach (DataColumn column in data.Columns)
                     {
-                        command.CommandText += ConvertToPostGresType(column.ColumnName, column.DataType.FullName, column.MaxLength, column.MaxLength, 6) + ", ";
+                        //TODO Figure out how to actually choose column sizes
+                        int length = column.MaxLength < 1 ? 500 : column.MaxLength;
+                        int precision = length;
+                        int scale = 6;
+
+                        command.CommandText += ConvertToPostGresType(column.ColumnName, column.DataType.FullName, length, precision, scale) + ", ";
                     }
                 }
                 else
