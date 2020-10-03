@@ -6,9 +6,9 @@ using System.IO.Compression;
 
 namespace ODL.Common
 {
-    public class TeacherEvaluations : IngestBase
+    public class USCensusS0901 : IngestBase
     {
-        public TeacherEvaluations(LogHandler LogObject, ODL.Common.DBConnectionDetails DbConnectionInfo, String FileName) : base(LogObject, DbConnectionInfo, FileName)
+        public USCensusS0901(LogHandler LogObject, ODL.Common.DBConnectionDetails DbConnectionInfo, String FileName) : base(LogObject, DbConnectionInfo, FileName)
         {
 
         }
@@ -28,24 +28,15 @@ namespace ODL.Common
                 {
                     if (VerifyDesirableFile(entry))
                     {
-                        string tempPath = IngestBase.TEMP_FOLDER + "\\" + entry.FullName;
+                        string fileName = ReplaceInvalidChars(entry.Name.Replace(".csv", ""));
+                        string tempPath = IngestBase.TEMP_FOLDER + "\\" + fileName + ".csv";
                         
                         if (ExtractFileToTempLocation(entry, tempPath))
                         {
-                            DataSet data = RetrieveFromMDBFile(tempPath);
-
-                            foreach (DataTable table in data.Tables)
-                            {
-                                if (table.TableName.EndsWith("_SCHEMA"))
-                                {
-                                    continue;
-                                }
-
-                                recordCount++;
-
-                                WriteToPostgres(table.TableName, GetMatchingSchemaTable(table.TableName.Replace("_DATA", "_SCHEMA"), data), table);
-                            }
-
+                            DataTable data = RetrieveFromCSVFile(fileName + ".csv");
+                                   
+                            WriteToPostgres(fileName, null, data);
+                            
                             File.Delete(tempPath);
                         }
                     }
@@ -80,7 +71,8 @@ namespace ODL.Common
         /// <returns></returns>
         private bool VerifyDesirableFile(ZipArchiveEntry entry)
         {
-            return entry.FullName.EndsWith(".mdb", StringComparison.OrdinalIgnoreCase);
+            return entry.FullName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) && !entry.FullName.Contains("_metadata_");
         }
+
     }
 }

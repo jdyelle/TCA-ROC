@@ -30,6 +30,7 @@
         {
             this.boxFileInfo = new System.Windows.Forms.GroupBox();
             this.cmbFileType = new System.Windows.Forms.ComboBox();
+            this.dlgFileBrowser = new System.Windows.Forms.OpenFileDialog();
             this.btnFileSelect = new System.Windows.Forms.Button();
             this.cmbFileSource = new System.Windows.Forms.ComboBox();
             this.txtFileName = new System.Windows.Forms.TextBox();
@@ -42,8 +43,10 @@
             this.cmbDatabaseType = new System.Windows.Forms.ComboBox();
             this.lblDatabaseType = new System.Windows.Forms.Label();
             this.lblDBCatalog = new System.Windows.Forms.Label();
+            this.lblDBPort = new System.Windows.Forms.Label();
             this.lblDBPassword = new System.Windows.Forms.Label();
             this.txtDBCatalog = new System.Windows.Forms.TextBox();
+            this.txtDBPort = new System.Windows.Forms.TextBox();
             this.lblDBUsername = new System.Windows.Forms.Label();
             this.btnSaveDBInfo = new System.Windows.Forms.Button();
             this.txtDBPassword = new System.Windows.Forms.TextBox();
@@ -91,6 +94,7 @@
             this.btnFileSelect.TabIndex = 20;
             this.btnFileSelect.Text = "Browse";
             this.btnFileSelect.UseVisualStyleBackColor = true;
+            this.btnFileSelect.Click += new System.EventHandler(this.btnFileSelect_Click);
             // 
             // cmbFileSource
             // 
@@ -156,8 +160,10 @@
             this.boxDatabaseInfo.Controls.Add(this.cmbDatabaseType);
             this.boxDatabaseInfo.Controls.Add(this.lblDatabaseType);
             this.boxDatabaseInfo.Controls.Add(this.lblDBCatalog);
+            this.boxDatabaseInfo.Controls.Add(this.lblDBPort);
             this.boxDatabaseInfo.Controls.Add(this.lblDBPassword);
             this.boxDatabaseInfo.Controls.Add(this.txtDBCatalog);
+            this.boxDatabaseInfo.Controls.Add(this.txtDBPort);
             this.boxDatabaseInfo.Controls.Add(this.lblDBUsername);
             this.boxDatabaseInfo.Controls.Add(this.btnSaveDBInfo);
             this.boxDatabaseInfo.Controls.Add(this.txtDBPassword);
@@ -174,19 +180,19 @@
             // cmbDatabaseType
             // 
             this.cmbDatabaseType.FormattingEnabled = true;
-            this.cmbDatabaseType.Location = new System.Drawing.Point(267, 55);
+            this.cmbDatabaseType.Location = new System.Drawing.Point(320, 55);
             this.cmbDatabaseType.Name = "cmbDatabaseType";
-            this.cmbDatabaseType.Size = new System.Drawing.Size(150, 23);
+            this.cmbDatabaseType.Size = new System.Drawing.Size(100, 23);
             this.cmbDatabaseType.TabIndex = 150;
             // 
             // lblDatabaseType
             // 
             this.lblDatabaseType.AutoSize = true;
-            this.lblDatabaseType.Location = new System.Drawing.Point(298, 81);
+            this.lblDatabaseType.Location = new System.Drawing.Point(260, 55);
             this.lblDatabaseType.Name = "lblDatabaseType";
             this.lblDatabaseType.Size = new System.Drawing.Size(82, 15);
             this.lblDatabaseType.TabIndex = 0;
-            this.lblDatabaseType.Text = "Database Type";
+            this.lblDatabaseType.Text = "DB Type";
             // 
             // lblDBCatalog
             // 
@@ -195,7 +201,16 @@
             this.lblDBCatalog.Name = "lblDBCatalog";
             this.lblDBCatalog.Size = new System.Drawing.Size(90, 15);
             this.lblDBCatalog.TabIndex = 0;
-            this.lblDBCatalog.Text = "Database Name";
+            this.lblDBCatalog.Text = "DB Name";
+            // 
+            // lblDBPort
+            // 
+            this.lblDBPort.AutoSize = true;
+            this.lblDBPort.Location = new System.Drawing.Point(260, 95);
+            this.lblDBPort.Name = "lblDBPort";
+            this.lblDBPort.Size = new System.Drawing.Size(90, 15);
+            this.lblDBPort.TabIndex = 0;
+            this.lblDBPort.Text = "DB Port";
             // 
             // lblDBPassword
             // 
@@ -212,6 +227,13 @@
             this.txtDBCatalog.Name = "txtDBCatalog";
             this.txtDBCatalog.Size = new System.Drawing.Size(146, 23);
             this.txtDBCatalog.TabIndex = 120;
+            // 
+            // txtDBPort
+            // 
+            this.txtDBPort.Location = new System.Drawing.Point(320, 95);
+            this.txtDBPort.Name = "txtDBPort";
+            this.txtDBPort.Size = new System.Drawing.Size(100, 23);
+            this.txtDBPort.TabIndex = 130;
             // 
             // lblDBUsername
             // 
@@ -339,6 +361,7 @@
         private System.Windows.Forms.GroupBox boxFileInfo;
         private System.Windows.Forms.ComboBox cmbFileType;
         private System.Windows.Forms.Button btnFileSelect;
+        private System.Windows.Forms.OpenFileDialog dlgFileBrowser;
         private System.Windows.Forms.ComboBox cmbFileSource;
         private System.Windows.Forms.TextBox txtFileName;
         private System.Windows.Forms.Label lblFileType;
@@ -348,8 +371,10 @@
         private System.Windows.Forms.Label lblDBServer;
         private System.Windows.Forms.GroupBox boxDatabaseInfo;
         private System.Windows.Forms.Label lblDBCatalog;
+        private System.Windows.Forms.Label lblDBPort;
         private System.Windows.Forms.Label lblDBPassword;
         private System.Windows.Forms.TextBox txtDBCatalog;
+        private System.Windows.Forms.TextBox txtDBPort;
         private System.Windows.Forms.Label lblDBUsername;
         private System.Windows.Forms.TextBox txtDBPassword;
         private System.Windows.Forms.TextBox txtDBUsername;

@@ -12,6 +12,7 @@ namespace ODL.Common
         public string DBCatalog = String.Empty;
         public string DBUsername = String.Empty;
         public string DBPassword = String.Empty;
+        public int DBPort = -1;
         public SupportedDatabases DBType = SupportedDatabases.PostgreSQL;
     }
 
