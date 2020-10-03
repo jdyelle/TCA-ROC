@@ -5,6 +5,8 @@
 /CensusAnalytics/OpenDataLoader/OpenDataLoader/obj
 /CensusAnalytics/OpenDataLoader/ODL.Common/obj
 /CensusAnalytics/OpenDataLoader/.vs/OpenDataLoader
-/CensusAnalytics/OpenDataLoader/ODL.Common/bin/Debug/netstandard2.0
+/CensusAnalytics/OpenDataLoader/ODL.Common/bin
 /CensusAnalytics/OpenDataLoader/.vs
-/CensusAnalytics/OpenDataLoader/OpenDataLoader/bin/Debug/netcoreapp3.1
+/CensusAnalytics/OpenDataLoader/OpenDataLoader/bin
+/CensusAnalytics/OpenDataLoader/ConsoleApp1/obj
+/CensusAnalytics/OpenDataLoader/ConsoleApp1/bin

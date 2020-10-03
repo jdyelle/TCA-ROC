@@ -22,7 +22,9 @@ namespace OpenDataLoader
             //Create the logger
             InitializeComponent();
             Logger = new ODL.Common.LogHandler();
+#if DEBUG
             Logger.DebugMode = true;
+#endif
             Logger.LogTableUpdated += RefreshLogGrid;
             Logger.LogInformation("Welcome to OpenDataLoader.");
             if (Logger.DebugMode) Logger.LogDebug("Created Logger");
