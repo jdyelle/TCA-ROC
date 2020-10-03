@@ -151,7 +151,16 @@ namespace OpenDataLoader
             _tempObject.DBPort = int.TryParse(txtDBPort.Text, out port) ? port : -1;       
             _tempObject.DBType = (SupportedDatabases)Enum.Parse(typeof(SupportedDatabases), cmbDatabaseType.Text);
 
-            ODL.Common.DatabaseUtils.Save(_tempObject, Logger);
+            if (!DatabaseUtils.TestDBConnection(_tempObject, Logger))
+            {
+                DialogResult dialogResult = MessageBox.Show("Unable to connect to the database with selected info, would \n" +
+                    "you like to save the connection details anyway?", "Connection Failed", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.Yes) ODL.Common.DatabaseUtils.Save(_tempObject, Logger);
+            }
+            else
+            {
+                ODL.Common.DatabaseUtils.Save(_tempObject, Logger);
+            }
         }
 
         private void btnExitApp_Click(object sender, EventArgs e)

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
@@ -28,7 +30,7 @@ namespace ODL.Common
 
         public static void Save(DBConnectionDetails DBConnection, LogHandler Logger)
         {
-            if (Logger.DebugMode) Logger.LogDebug("Enter Save DBConnection Method");
+            if (Logger.DebugMode) Logger.LogTrace("Enter Save DBConnection Method");
             try
             {
                 DBConnection.DBPassword = Encrypt(DBConnection.DBPassword, DBConnection.DBServer, DBConnection.DBUsername);
@@ -42,9 +44,29 @@ namespace ODL.Common
 
         }
 
+        public static bool TestDBConnection(DBConnectionDetails DBConnection, LogHandler Logger)
+        {
+            if (Logger.DebugMode) Logger.LogTrace("Enter TestDBConnection Method");
+            if (DBConnection.DBType == SupportedDatabases.PostgreSQL)
+            {
+                try
+                {
+                    DatabaseUtils.Postgres.ConnectToPostGRES(DBConnection);
+                    if (Logger.DebugMode) Logger.LogDebug("Successful Connection to database");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning("Unable to connect to database: " + ex.Message);
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public static DBConnectionDetails Load(LogHandler Logger)
         {
-            if (Logger.DebugMode) Logger.LogDebug("Enter Load DBConnection Method");
+            if (Logger.DebugMode) Logger.LogTrace("Enter Load DBConnection Method");
             DBConnectionDetails _ReturnObject = null;
             if (File.Exists("./DBConnectionConfig.json"))
             {
