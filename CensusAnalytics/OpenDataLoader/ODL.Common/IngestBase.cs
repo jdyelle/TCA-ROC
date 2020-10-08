@@ -6,9 +6,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Data.OleDb;
 using Npgsql;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
+using NpgsqlTypes;
+using System.Linq;
 
 namespace ODL.Common
 {
@@ -158,7 +158,9 @@ namespace ODL.Common
         {
             DataSet mdbData = new DataSet();
 
-            string connectionString = "Provider = Microsoft.Jet.OLEDB.4.0; Data Source=" + source + ";";
+            //This might only work on machines where the Access Engine exists AccessDatabaseEngine_x64.exe /passive
+            //https://www.microsoft.com/en-us/download/details.aspx?id=13255
+            string connectionString = "Provider = Microsoft.ACE.OLEDB.12.0; Data Source=" + source + ";";
 
             using (OleDbConnection connection = new OleDbConnection(connectionString))
             {
@@ -290,7 +292,7 @@ namespace ODL.Common
         /// <param name="columnSize"></param>
         /// <param name="numericPrecision"></param>
         /// <param name="numericScale"></param>
-        /// <remarks>Not using NpgsqlDbType because it cannot be cleaning converted</remarks>
+        /// <remarks>Not using NpgsqlDbType because it cannot be cleanly converted</remarks>
         private string ConvertToPostGresType(string columnName, string dataType, int columnSize, int numericPrecision, int numericScale)
         {
             string columnDefinition = columnName + " ";
@@ -345,6 +347,64 @@ namespace ODL.Common
         }
 
         /// <summary>
+        /// Converts from .Net Type to PostGres NpgsqlDbType definition type (hopefully)
+        /// </summary>
+        /// <param name="dataType"></param>
+        /// <remarks>Not using NpgsqlDbType because it cannot be cleaning converted</remarks>
+        private NpgsqlDbType GetNpgSqlType(string dataType)
+        {
+            NpgsqlDbType npgType;
+
+            switch (dataType)
+            {
+                case "System.Int64":
+                    npgType = NpgsqlDbType.Bigint;
+                    break;
+                case "System.Boolean":
+                    npgType = NpgsqlDbType.Boolean;
+                    break;
+                case "System.Byte[]":
+                    npgType = NpgsqlDbType.Bytea;
+                    break;
+                case "System.DateTime":
+                    npgType = NpgsqlDbType.Date;
+                    break;
+                case "System.Double":
+                    npgType = NpgsqlDbType.Double;
+                    break;
+                case "System.Int32":
+                    npgType = NpgsqlDbType.Integer;
+                    break;
+                case "System.Decimal":
+                    npgType = NpgsqlDbType.Numeric;
+                    break;
+                case "System.Single":
+                    npgType = NpgsqlDbType.Real;
+                    break;
+                case "System.Int16":
+                    npgType = NpgsqlDbType.Smallint;
+                    break;
+                case "System.TimeSpan":
+                    npgType = NpgsqlDbType.Interval;
+                    break;
+                case "System.IPAddress":
+                    npgType = NpgsqlDbType.Inet;
+                    break;
+                case "System.Guid":
+                    npgType = NpgsqlDbType.Uuid;
+                    break;
+                case "System.Array":
+                    npgType = NpgsqlDbType.Array;
+                    break;
+                default:
+                    npgType = NpgsqlDbType.Varchar;
+                    break;
+            }
+
+            return npgType;
+        }
+
+        /// <summary>
         /// Takes in-memory information (datatables) and creates a Postgres table and populates that table
         /// </summary>
         /// <param name="tableName"></param>
@@ -352,9 +412,11 @@ namespace ODL.Common
         /// <param name="data"></param>
         protected void WriteToPostgres(string tableName, DataTable schema, DataTable data)
         {
+            List<KeyValuePair<string, NpgsqlDbType>> columns = new List<KeyValuePair<string, NpgsqlDbType>>();
+
             using (NpgsqlCommand command = new NpgsqlCommand(string.Empty, this.PostgresConnection))
             {
-                command.CommandText = "CREATE TABLE " + tableName + " (";
+                command.CommandText = "CREATE TABLE IF NOT EXISTS " + tableName + " (";
 
                 if (schema == null)
                 {
@@ -365,6 +427,7 @@ namespace ODL.Common
                         int precision = length;
                         int scale = 6;
 
+                        columns.Add(new KeyValuePair<string, NpgsqlDbType>(column.ColumnName, NpgsqlDbType.Varchar));
                         command.CommandText += ConvertToPostGresType(column.ColumnName, column.DataType.FullName, length, precision, scale) + ", ";
                     }
                 }
@@ -372,6 +435,7 @@ namespace ODL.Common
                 {
                     foreach (DataRow row in schema.Rows)
                     {
+                        columns.Add(new KeyValuePair<string, NpgsqlDbType>(row.Field<string>("ColumnName"), GetNpgSqlType(row.Field<Type>("DataType").FullName)));
                         command.CommandText += ConvertToPostGresType(row.Field<string>("ColumnName"), row.Field<Type>("DataType").FullName,
                             row.Field<int>("ColumnSize"), row.Field<int>("NumericPrecision"), row.Field<int>("NumericScale")) + ", ";
                     }
@@ -382,17 +446,19 @@ namespace ODL.Common
                 command.ExecuteNonQuery();
             }
 
-            using (MemoryStream stream = new MemoryStream())
+            using (var writer = this.PostgresConnection.BeginBinaryImport("COPY " + tableName + "(" + string.Join(",", (from kvp in columns select kvp.Key).ToList()) + ") FROM STDIN (FORMAT BINARY)"))
             {
-                IFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(stream, data);
-
-                byte[] bytes = stream.GetBuffer();
-
-                using (var outStream = this.PostgresConnection.BeginRawBinaryCopy("COPY " + tableName + " FROM STDIN (FORMAT BINARY)"))
+                foreach (DataRow row in data.Rows)
                 {
-                    outStream.Write(bytes, 0, data.Rows.Count);
+                    writer.StartRow();
+
+                    for (int i = 0; i < data.Columns.Count; i++)
+                    {
+                        writer.Write(row[i], columns[i].Value);
+                    }
                 }
+
+                writer.Complete();
             }
         }
     }

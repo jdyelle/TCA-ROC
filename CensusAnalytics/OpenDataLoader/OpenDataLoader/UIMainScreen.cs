@@ -49,6 +49,7 @@ namespace OpenDataLoader
             if (Logger.DebugMode) Logger.LogTrace("Loading DBConfig from json (if available)");
             //Load config from json
             ConnectionDetails = ODL.Common.DatabaseUtils.Load(Logger);
+
             txtDBUsername.Text = ConnectionDetails.DBUsername;
             txtDBPassword.Text = ConnectionDetails.DBPassword;
             txtDBServer.Text = ConnectionDetails.DBServer;
@@ -66,18 +67,18 @@ namespace OpenDataLoader
         /// <returns>Stuff to make nested dropdowns</returns>
         private List<KeyValuePair<String, List<KeyValuePair<String, String>>>> ConvolutedWayToMakeNestedDropdowns()
         {
-            List<KeyValuePair<String, List<KeyValuePair<String, String>>>> MasterDropdown = 
+            List<KeyValuePair<String, List<KeyValuePair<String, String>>>> MasterDropdown =
                 new List<KeyValuePair<String, List<KeyValuePair<String, String>>>>();
 
             MasterDropdown.Add(
-                new KeyValuePair<String, List<KeyValuePair<String, String>>>("NYS Education Department", 
+                new KeyValuePair<String, List<KeyValuePair<String, String>>>("NYS Education Department",
                     new List<KeyValuePair<String, String>>()
                         {
                             new KeyValuePair<String, String> ("NYS Graduation Rate", "NYSGradeRate"),
                             new KeyValuePair<String, String> ("NYS Teacher Evaluations", "NYSTeacherEval"),
                             new KeyValuePair<String, String> ("NYS Report Cards", "NYSReportCards"),
                             new KeyValuePair<String, String> ("NYS 3-8 Assessments", "NYS3to8Assessments")
-                        } 
+                        }
                     )
                 );
             MasterDropdown.Add(
@@ -147,8 +148,8 @@ namespace OpenDataLoader
             _tempObject.DBUsername = txtDBUsername.Text;
             _tempObject.DBPassword = txtDBPassword.Text;
             _tempObject.DBServer = txtDBServer.Text;
-            _tempObject.DBCatalog = txtDBCatalog.Text;     
-            _tempObject.DBPort = int.TryParse(txtDBPort.Text, out port) ? port : -1;       
+            _tempObject.DBCatalog = txtDBCatalog.Text;
+            _tempObject.DBPort = int.TryParse(txtDBPort.Text, out port) ? port : -1;
             _tempObject.DBType = (SupportedDatabases)Enum.Parse(typeof(SupportedDatabases), cmbDatabaseType.Text);
 
             if (!DatabaseUtils.TestDBConnection(_tempObject, Logger))
@@ -183,7 +184,8 @@ namespace OpenDataLoader
             {
                 txtFileName.Text = dlgFileBrowser.FileName;
             }
-            else {
+            else
+            {
                 Logger.LogWarning("Error choosing file");
             }
         }
@@ -191,13 +193,18 @@ namespace OpenDataLoader
         private void btnLoadSelectedFile_Click(object sender, EventArgs e)
         {
             ODL.Common.IngestBase ingest = null;
-            
+
             //TODO Need some validations
-            switch(cmbFileSource.SelectedValue) {
+            switch (cmbFileType.SelectedValue)
+            {
                 case "NYSTeacherEval":
                     ingest = new ODL.Common.TeacherEvaluations(Logger, ConnectionDetails, txtFileName.Text);
                     break;
-                    
+
+                case "S0901":
+                    ingest = new ODL.Common.USCensusS0901(Logger, ConnectionDetails, txtFileName.Text);
+                    break;
+
                 default:
                     Logger.LogWarning("File Source not supported");
                     break;
