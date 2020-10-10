@@ -20,6 +20,7 @@ A few conventions to get us started on logging, implementation details:
 - The IngestBase class has been provided to create a frame of what you'll need to do implementations.
 - Please place individual implementation classes in the [ODL.Common\IngestImplementations] folder.
 - Link the implementation to the relevant drop down in the UIMainScreen class under the [btnLoadSelectedFile_Click] method (there should be a logic tree there for the dropdown).
+- Take a look at issues #24, 25, 26, and 27. Those have a limited scope. (Beginner-friendly issues should be tagged with "good first issue")
 
 ### Logging:
  - LogTrace(String) : Method Exit/Entry Logging : Log only if Logging.DebugMode is set
