@@ -26,9 +26,8 @@ namespace ODL.Common
 
             using (ZipArchive archive = ZipFile.OpenRead(base.DataFile.FullName))
             {
-                //THE START OF SOME EXTREMELY BREAKABLE CODE
+                //THE START OF SOME EXTREMELY BREAKABLE CODE THAT MAKES ASSUMPTIONS
                 string schoolYear = Regex.Replace(base.DataFile.FullName, @"[^\d]", ""); //remove non-numeric characters
-                string schoolYearFormatted = schoolYear + "-" + (short.Parse(schoolYear.Substring(2, 2)) + 1);
                 //END OF EXTREMELY BREAKABLE CODE
 
                 foreach (ZipArchiveEntry entry in archive.Entries)
@@ -43,28 +42,35 @@ namespace ODL.Common
 
                             foreach (DataTable table in data.Tables)
                             {
-                                if (table.TableName.EndsWith("_SCHEMA"))
-                                {
-                                    continue;
-                                }
-
-                                //THE START OF SOME EXTREMELY BREAKABLE CODE
-                                if (table.Columns.Contains("SCHOOL_YEAR"))
-                                {
-                                    //do nothing, date is already recorded
-                                }
-                                else
-                                {
-                                    table.Columns.Add("SCHOOL_YEAR").Expression = "'" + schoolYearFormatted + "'";
-                                }
-                                //END OF EXTREMELY BREAKABLE CODE
-
                                 string postGresTableName = table.TableName.Substring(0, table.TableName.LastIndexOf("_DATA"));
+                                string primaryKey = CreatePrimaryKey(postGresTableName, schoolYear);
 
-                                this.PreviouslyLoadedRecords.Add(CreatePrimaryKey(postGresTableName, schoolYear));
-                                recordCount++;
+                                if (!this.PreviouslyLoadedRecords.Contains(primaryKey))
+                                {
+                                    if (table.TableName.EndsWith("_SCHEMA"))
+                                    {
+                                        continue;
+                                    }
 
-                                WriteToPostgres(postGresTableName, GetMatchingSchemaTable(table.TableName.Replace("_DATA", "_SCHEMA"), data), table);
+                                    //Pre 2016, the data did not include the school year in the data; it was just part of the zip file name
+                                    if (table.Columns.Contains("SCHOOL_YEAR"))
+                                    {
+                                        //do nothing, date is already recorded
+                                    }
+                                    else
+                                    {
+                                        //Creating a school year in the format of "2016-17" to show the transition of autumn of one year to spring of the next
+                                        //NYS was the one that chose this format.
+                                        string schoolYearFormatted = schoolYear + "-" + (short.Parse(schoolYear.Substring(2, 2)) + 1);
+
+                                        table.Columns.Add("SCHOOL_YEAR").Expression = "'" + schoolYearFormatted + "'";
+                                    }
+
+                                    this.PreviouslyLoadedRecords.Add(primaryKey);
+                                    recordCount++;
+
+                                    WriteToPostgres(postGresTableName, GetMatchingSchemaTable(table.TableName.Replace("_DATA", "_SCHEMA"), data), table);
+                                }
                             }
 
                             File.Delete(tempPath);
