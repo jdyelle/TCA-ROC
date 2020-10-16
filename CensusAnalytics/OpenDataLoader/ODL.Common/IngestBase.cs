@@ -43,7 +43,7 @@ namespace ODL.Common
         /// <returns>Number of new records loaded from selected file.</returns>
         public Int32 StartLoading()
         {
-            CreateDatabaseTable();
+            //CreateDatabaseTable();
             this.PreviouslyLoadedRecords = PopulatePreviouslyLoadedRecords();
             return LoadRecordsFromFile();
         }

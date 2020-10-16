@@ -1,8 +1,10 @@
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace ODL.Common
 {
@@ -24,12 +26,17 @@ namespace ODL.Common
 
             using (ZipArchive archive = ZipFile.OpenRead(base.DataFile.FullName))
             {
+                //THE START OF SOME EXTREMELY BREAKABLE CODE
+                string schoolYear = Regex.Replace(base.DataFile.FullName, @"[^\d]", ""); //remove non-numeric characters
+                string schoolYearFormatted = schoolYear + "-" + (short.Parse(schoolYear.Substring(2, 2)) + 1);
+                //END OF EXTREMELY BREAKABLE CODE
+
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {
                     if (VerifyDesirableFile(entry))
                     {
                         string tempPath = IngestBase.TEMP_FOLDER + "\\" + entry.FullName;
-                        
+
                         if (ExtractFileToTempLocation(entry, tempPath))
                         {
                             DataSet data = RetrieveFromMDBFile(tempPath);
@@ -41,9 +48,23 @@ namespace ODL.Common
                                     continue;
                                 }
 
+                                //THE START OF SOME EXTREMELY BREAKABLE CODE
+                                if (table.Columns.Contains("SCHOOL_YEAR"))
+                                {
+                                    //do nothing, date is already recorded
+                                }
+                                else
+                                {
+                                    table.Columns.Add("SCHOOL_YEAR").Expression = "'" + schoolYearFormatted + "'";
+                                }
+                                //END OF EXTREMELY BREAKABLE CODE
+
+                                string postGresTableName = table.TableName.Substring(0, table.TableName.LastIndexOf("_DATA"));
+
+                                this.PreviouslyLoadedRecords.Add(CreatePrimaryKey(postGresTableName, schoolYear));
                                 recordCount++;
 
-                                WriteToPostgres(table.TableName, GetMatchingSchemaTable(table.TableName.Replace("_DATA", "_SCHEMA"), data), table);
+                                WriteToPostgres(postGresTableName, GetMatchingSchemaTable(table.TableName.Replace("_DATA", "_SCHEMA"), data), table);
                             }
 
                             File.Delete(tempPath);
@@ -70,7 +91,30 @@ namespace ODL.Common
         /// </summary>
         public override List<String> PopulatePreviouslyLoadedRecords()
         {
-            throw new NotImplementedException();
+            List<string> previousRecords = new List<string>();
+
+            using (NpgsqlCommand command = new NpgsqlCommand(string.Empty, this.PostgresConnection))
+            {
+                foreach (string table in new string[]{
+                    "APPR_DISTRICT_RESEARCHER_FILE_DATA", "APPR_SCHOOL_RESEARCHER_FILE_DATA", "APPR_STATEWIDE_RESEARCHER_FILE_DATA", "SPG_DISTRICT_RESEARCHER_FILE_DATA", "SPG_SCHOOL_RESEARCHER_FILE_DATA", "SPG_STATEWIDE_RESEARCHER_FILE_DATA", "APPR_RESEARCHER_DATA_PART_C_ORIGINAL_DISTRICT", "APPR_RESEARCHER_DATA_PART_C_ORIGINAL_SCHOOL", "APPR_RESEARCHER_DATA_PART_C_ORIGINAL_STATEWIDE", "APPR_RESEARCHER_DATA_PART_C_TRANSITION_DISTRICT", "APPR_RESEARCHER_DATA_PART_C_TRANSITION_SCHOOL", "APPR_RESEARCHER_DATA_PART_C_TRANSITION_STATEWIDE", "APPR_RESEARCHER_DATA_PART_D_ORIGINAL_DISTRICT" , "APPR_RESEARCHER_DATA_PART_D_ORIGINAL_SCHOOL", "APPR_RESEARCHER_DATA_PART_D_ORIGINAL_STATEWIDE", "APPR_RESEARCHER_DATA_PART_D_TRANSITION_DISTRICT", "APPR_RESEARCHER_DATA_PART_D_TRANSITION_SCHOOL", "APPR_RESEARCHER_DATA_PART_D_TRANSITION_STATEWIDE"})
+                {
+                    command.CommandText = String.Format(@"IF EXISTS( SELECT FROM pg_tables WHERE tablename='{0}') THEN 
+                                                              SELECT '{0}' as TABLE, SCHOOL_YEAR FROM {0} GROUP BY SCHOOL_YEAR;
+                                                          END IF;", table);
+
+                    //TODO fix error "syntax error at or near "IF"'"
+                    //"Why are we not doing this as a UNION?" ... because I can't get this already simple case to work and I don't want to add more complexity until I can do the simple case.
+                    using (NpgsqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            previousRecords.Add(CreatePrimaryKey(reader["TABLE"].ToString(), reader["SCHOOL_YEAR"].ToString()));
+                        }
+                    }
+                }
+            }
+
+            return previousRecords;
         }
 
         /// <summary>
@@ -81,6 +125,11 @@ namespace ODL.Common
         private bool VerifyDesirableFile(ZipArchiveEntry entry)
         {
             return entry.FullName.EndsWith(".mdb", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string CreatePrimaryKey(string tableName, string schoolYear)
+        {
+            return tableName + "|" + schoolYear;
         }
     }
 }
