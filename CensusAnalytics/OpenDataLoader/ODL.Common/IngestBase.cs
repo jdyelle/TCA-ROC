@@ -43,7 +43,6 @@ namespace ODL.Common
         /// <returns>Number of new records loaded from selected file.</returns>
         public Int32 StartLoading()
         {
-            //CreateDatabaseTable();
             this.PreviouslyLoadedRecords = PopulatePreviouslyLoadedRecords();
             return LoadRecordsFromFile();
         }
@@ -54,12 +53,6 @@ namespace ODL.Common
         /// </summary>
         /// <returns>(Int32)Count of Records in the File</returns>
         public abstract Int32 LoadRecordsFromFile();
-
-        /// <summary>
-        /// This method should verify/create a database table that fits the data format that is being loaded for the table type.
-        /// Ideally, there would be a hashid of each record as the PK that will prevent duplicate entries if the same file is loaded twice.
-        /// </summary>
-        public abstract void CreateDatabaseTable();
 
         /// <summary>
         /// This method should select the common PK (if one exists in the source) or the generated PK/hash from the DB to ensure
