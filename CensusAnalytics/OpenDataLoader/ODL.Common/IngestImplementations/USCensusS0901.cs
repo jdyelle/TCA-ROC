@@ -35,7 +35,7 @@ namespace ODL.Common
                         {
                             DataTable data = RetrieveFromCSVFile(fileName + ".csv");
                                    
-                            WriteToPostgres(fileName, null, data);
+                            WriteToPostgres(fileName.ToLower(), null, data);
                             
                             File.Delete(tempPath);
                         }
@@ -44,15 +44,6 @@ namespace ODL.Common
             }
 
             return recordCount;
-        }
-
-        /// <summary>
-        /// This method should verify/create a database table that fits the data format that is being loaded for the table type.
-        /// Ideally, there would be a hashid of each record as the PK that will prevent duplicate entries if the same file is loaded twice.
-        /// </summary>
-        public override void CreateDatabaseTable()
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>
